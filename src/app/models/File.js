@@ -9,7 +9,7 @@ class File extends Model {
         url: {
           type: Sequelize.VIRTUAL,
           get() {
-            return `localhost:3333/files/${this.path}`;
+            return `localhost:3330/files/${this.path}`;
           },
         },
       },
