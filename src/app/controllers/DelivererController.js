@@ -1,11 +1,11 @@
 import * as Yup from 'yup';
-import Courier from '../models/Courier';
+import Deliverer from '../models/Deliverer';
 
-class CourierController {
+class DelivererController {
   async index(req, res) {
-    const couriers = await Courier.findAll();
+    const deliverer = await Deliverer.findAll();
 
-    res.json(couriers);
+    res.json(deliverer);
   }
 
   async store(req, res) {
@@ -20,15 +20,15 @@ class CourierController {
       return res.status(400).json({ error: 'Validation error' });
     }
 
-    const courierExists = await Courier.findOne({
+    const delivererExists = await Deliverer.findOne({
       where: { email: req.body.email },
     });
 
-    if (courierExists) {
-      return res.status(400).json({ error: 'User already exists' });
+    if (delivererExists) {
+      return res.status(400).json({ error: 'Deliverer already exists' });
     }
 
-    const { id, name, email } = await Courier.create(req.body);
+    const { id, name, email } = await Deliverer.create(req.body);
 
     return res.json({
       id,
@@ -47,44 +47,44 @@ class CourierController {
       return res.status(400).json({ error: 'Validation error' });
     }
 
-    const courier = await Courier.findByPk(req.params.id);
+    const deliverer = await Deliverer.findByPk(req.params.id);
 
-    if (!courier) {
+    if (!deliverer) {
       return res.status(400).json({ error: 'Courier not found' });
     }
 
     const { email } = req.body;
 
-    if (email && courier.email !== email) {
-      const courierExists = await Courier.findOne({
+    if (email && deliverer.email !== email) {
+      const delivererExists = await Deliverer.findOne({
         where: { email },
       });
 
-      if (courierExists) {
+      if (delivererExists) {
         return res.status(400).json({ error: 'User already exists' });
       }
     }
 
-    const { id, name } = await courier.update(req.body);
+    const { id, name } = await deliverer.update(req.body);
 
     return res.json({
       id,
       name,
-      email: courier.email,
+      email: deliverer.email,
     });
   }
 
   async delete(req, res) {
-    const courier = await Courier.findByPk(req.params.id);
+    const deliverer = await Deliverer.findByPk(req.params.id);
 
-    if (!courier) {
+    if (!deliverer) {
       return res.status(400).json({ error: 'Courier not found' });
     }
 
-    await courier.destroy();
+    await deliverer.destroy();
 
     return res.json();
   }
 }
 
-export default new CourierController();
+export default new DelivererController();
