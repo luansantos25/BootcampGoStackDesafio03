@@ -1,5 +1,8 @@
 import * as Yup from 'yup';
 import Order from '../models/Order';
+import Deliverer from '../models/Deliverer';
+import Recipient from '../models/Recipient';
+import Mail from '../../lib/Mail';
 
 class OrderController {
   async index(req, res) {
@@ -8,19 +11,53 @@ class OrderController {
   }
 
   async store(req, res) {
+    // Yup schema for validation
     const schema = Yup.object().shape({
       product: Yup.string().required(),
       recipient_id: Yup.number().required(),
       deliverer_id: Yup.number().required(),
     });
 
+    // checking if body params is valid
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation error' });
     }
 
-    await Order.create(req.body);
+    const deliverer = await Deliverer.findByPk(req.body.deliverer_id);
 
-    return res.json();
+    // checking if deliverer exists
+    if (!deliverer) {
+      return res.status(400).json({ error: 'Deliverer not found' });
+    }
+
+    const recipient = await Recipient.findByPk(req.body.recipient_id);
+
+    // checking if recipient exists
+    if (!recipient) {
+      return res.status(400).json({ error: 'Recipient not found' });
+    }
+
+    // creating order
+    const order = await Order.create(req.body);
+
+    // send mail
+    await Mail.sendMail({
+      to: `${deliverer.name} - email@email.com`,
+      subject: 'Nova encomenda - Fastfeet',
+      template: 'createOrder',
+      context: {
+        deliverer_name: deliverer.name,
+        recipient_name: recipient.name,
+        recipient_street: recipient.street,
+        recipient_number: recipient.number,
+        recipient_city: recipient.city,
+        recipient_state: recipient.state,
+        product_name: order.product,
+      },
+    });
+
+    // returning data
+    return res.json(order);
   }
 
   async update(req, res) {
