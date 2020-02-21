@@ -2,7 +2,8 @@ import * as Yup from 'yup';
 import Order from '../models/Order';
 import Deliverer from '../models/Deliverer';
 import Recipient from '../models/Recipient';
-import Mail from '../../lib/Mail';
+import Queue from '../../lib/Queue';
+import CreateOrderMail from '../jobs/CreateOrderMail';
 
 class OrderController {
   async index(req, res) {
@@ -40,20 +41,11 @@ class OrderController {
     // creating order
     const order = await Order.create(req.body);
 
-    // send mail
-    await Mail.sendMail({
-      to: `${deliverer.name} - email@email.com`,
-      subject: 'Nova encomenda - Fastfeet',
-      template: 'createOrder',
-      context: {
-        deliverer_name: deliverer.name,
-        recipient_name: recipient.name,
-        recipient_street: recipient.street,
-        recipient_number: recipient.number,
-        recipient_city: recipient.city,
-        recipient_state: recipient.state,
-        product_name: order.product,
-      },
+    // add email in queue
+    await Queue.add(CreateOrderMail.key, {
+      deliverer,
+      recipient,
+      order,
     });
 
     // returning data
