@@ -9,17 +9,26 @@ import RecipientController from './app/controllers/RecipientController';
 import DelivererController from './app/controllers/DelivererController';
 import FileController from './app/controllers/FileController';
 import OrderController from './app/controllers/OrderController';
+import DelivererOrderController from './app/controllers/DelivererOrderController';
+import SignatureController from './app/controllers/SignatureController';
 
 import authMiddlewares from './app/middlewares/auth';
 
 const routes = new Router();
+const upload = multer(multerConfig);
 
 routes.post('/sessions', SessionController.store);
 routes.post('/users', UserController.store);
 
-routes.use(authMiddlewares);
+routes.get('/deliverer/:id/deliveries', DelivererOrderController.index);
+routes.put(
+  '/deliverer/:id/deliveries/:order_id',
+  DelivererOrderController.update
+);
 
-const upload = multer(multerConfig);
+routes.post('/signature', upload.single('file'), SignatureController.store);
+
+routes.use(authMiddlewares);
 
 routes.put('/users', UserController.update);
 
