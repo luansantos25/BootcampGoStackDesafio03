@@ -1,6 +1,6 @@
-import { Op } from 'sequelize';
+import Sequelize, { Op } from 'sequelize';
 import * as Yup from 'yup';
-import { parseISO } from 'date-fns';
+import { parseISO, startOfDay, endOfDay } from 'date-fns';
 import Order from '../models/Order';
 
 class DelivererOrderController {
@@ -49,6 +49,23 @@ class DelivererOrderController {
       return res.status(400).json({ err: 'Order not found' });
     }
 
+    const today = new Date();
+
+    const ordersOnDay = await Order.count({
+      where: {
+        start_date: { [Op.between]: [startOfDay(today), endOfDay(today)] },
+        deliverer_id: order.deliverer_id,
+      },
+    });
+
+    if (ordersOnDay > 3) {
+      return res
+        .status(400)
+        .json({ error: 'You reached the limit of the day' });
+    }
+
+    console.log('Orders on day', ordersOnDay);
+
     // check if the order has already been delivered
     if (order.end_date) {
       return res.status(400).json('This order has already been delivered');
@@ -77,7 +94,7 @@ class DelivererOrderController {
       order.start_date = new Date();
     }
 
-    await order.save();
+    // await order.save();
 
     return res.json(order);
   }
