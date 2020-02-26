@@ -1,6 +1,16 @@
-import Sequelize, { Op } from 'sequelize';
+import { Op } from 'sequelize';
 import * as Yup from 'yup';
-import { parseISO, startOfDay, endOfDay } from 'date-fns';
+import {
+  parseISO,
+  startOfDay,
+  endOfDay,
+  isWithinInterval,
+  getMinutes,
+  getHours,
+  getDate,
+  getMonth,
+  getYear,
+} from 'date-fns';
 import Order from '../models/Order';
 
 class DelivererOrderController {
@@ -51,6 +61,35 @@ class DelivererOrderController {
     }
 
     const today = new Date();
+    // const today = new Date('2020-02-26T14:01:00-03:00');
+
+    const initTime = new Date(
+      getYear(today),
+      getMonth(today),
+      getDate(today),
+      8
+    );
+
+    const endTime = new Date(
+      getYear(today),
+      getMonth(today),
+      getDate(today),
+      18,
+      0,
+      59
+    );
+
+    const isInRange = isWithinInterval(today, {
+      start: initTime,
+      end: endTime,
+    });
+
+    // checking if current time is within the allowed
+    if (!isInRange) {
+      return res.json({
+        error: 'Outside pick-up time',
+      });
+    }
 
     const ordersOnDay = await Order.count({
       where: {
@@ -60,13 +99,13 @@ class DelivererOrderController {
     });
 
     // checking if user reached the limit of the day
-    if (ordersOnDay >= 3 && req.body.start_date) {
+    if (ordersOnDay >= 5 && req.body.start_date) {
       return res
         .status(400)
         .json({ error: 'You reached the limit of the day' });
     }
 
-    console.log('Orders on day', ordersOnDay);
+    // console.log('Orders on day', ordersOnDay);
 
     const { end_date, signature_id } = req.body;
 
