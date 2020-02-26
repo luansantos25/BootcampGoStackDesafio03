@@ -19,7 +19,7 @@ class DelivererOrderController {
       ],
     });
 
-    return res.status(400).json(deliverer_orders);
+    return res.json(deliverer_orders);
   }
 
   async update(req, res) {
@@ -31,6 +31,7 @@ class DelivererOrderController {
       ),
     });
 
+    // validating data
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation error' });
     }
@@ -46,7 +47,7 @@ class DelivererOrderController {
 
     // check if order exists
     if (!order) {
-      return res.status(400).json({ err: 'Order not found' });
+      return res.status(400).json({ error: 'Order not found' });
     }
 
     const today = new Date();
@@ -58,7 +59,8 @@ class DelivererOrderController {
       },
     });
 
-    if (ordersOnDay > 3) {
+    // checking if user reached the limit of the day
+    if (ordersOnDay >= 3 && req.body.start_date) {
       return res
         .status(400)
         .json({ error: 'You reached the limit of the day' });
@@ -66,35 +68,40 @@ class DelivererOrderController {
 
     console.log('Orders on day', ordersOnDay);
 
-    // check if the order has already been delivered
-    if (order.end_date) {
-      return res.status(400).json('This order has already been delivered');
-    }
-
     const { end_date, signature_id } = req.body;
 
-    // update end_date and signature_if if both exists
+    // update end_date and signature_id if both exists
     if (end_date && signature_id) {
       // check if the order has already been started
       if (!order.start_date) {
         return res
           .status(400)
-          .json('You canot finalize an order that has not started');
+          .json({ error: 'You canot finalize an order that has not started' });
+      }
+
+      // check if the order has already been delivered
+      if (order.end_date) {
+        return res
+          .status(400)
+          .json({ error: 'This order has already been delivered' });
       }
 
       order.end_date = parseISO(end_date);
       order.signature_id = signature_id;
     } else {
-      // check if the order has already been delivered
+      // check if the order has already been started
       if (order.start_date) {
-        return res.status(400).json('This order has already been started');
+        return res
+          .status(400)
+          .json({ error: 'This order has already been started' });
       }
-
       // setting start date
-      order.start_date = new Date();
+      if (req.body.start_date) {
+        order.start_date = new Date();
+      }
     }
 
-    // await order.save();
+    await order.save();
 
     return res.json(order);
   }
