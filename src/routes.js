@@ -11,6 +11,7 @@ import FileController from './app/controllers/FileController';
 import OrderController from './app/controllers/OrderController';
 import DelivererOrderController from './app/controllers/DelivererOrderController';
 import SignatureController from './app/controllers/SignatureController';
+import DeliveryProblemController from './app/controllers/DeliveryProblemController';
 
 import authMiddlewares from './app/middlewares/auth';
 
@@ -25,6 +26,12 @@ routes.put(
   '/deliverer/:id/deliveries/:order_id',
   DelivererOrderController.update
 );
+
+routes.get('/problems', DeliveryProblemController.index);
+routes.get('/delivery/:id/problems', DeliveryProblemController.show);
+routes.post('/delivery/:id/problems', DeliveryProblemController.store);
+routes.delete('/problem/:id', DeliveryProblemController.delete);
+routes.delete('/problem/:id/cancel-delivery', DeliveryProblemController.delete);
 
 routes.post('/signature', upload.single('file'), SignatureController.store);
 
