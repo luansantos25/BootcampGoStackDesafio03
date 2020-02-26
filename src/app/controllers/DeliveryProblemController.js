@@ -2,6 +2,9 @@ import * as Yup from 'yup';
 import DeliveryProblem from '../models/DeliveryProblem';
 import Order from '../models/Order';
 import Deliverer from '../models/Deliverer';
+import Recipient from '../models/Recipient';
+import Queue from '../../lib/Queue';
+import CancelOrderByProblemMail from '../jobs/CancelOrderByProblemMail';
 
 class DeliveryProblemController {
   async index(req, res) {
@@ -76,7 +79,31 @@ class DeliveryProblemController {
   async delete(req, res) {
     const finalPath = req.path.split('/').pop();
 
-    const deliveryProblem = await DeliveryProblem.findByPk(req.params.id);
+    const deliveryProblem = await DeliveryProblem.findOne({
+      where: { id: req.params.id },
+      attributes: ['description', 'delivery_id'],
+      include: [
+        {
+          model: Order,
+          as: 'delivery',
+          attributes: ['product'],
+          include: [
+            {
+              model: Recipient,
+              as: 'recipient',
+              attributes: ['name', 'street', 'number', 'city', 'state'],
+            },
+            {
+              model: Deliverer,
+              as: 'deliverer',
+              attributes: ['name', 'email'],
+            },
+          ],
+        },
+      ],
+    });
+
+    // return res.json(deliveryProblem);
 
     if (!deliveryProblem) {
       return res.status(400).json({ error: 'Delivery problem not found' });
@@ -110,7 +137,15 @@ class DeliveryProblemController {
 
     await order.save();
 
-    return res.json(finalPath);
+    // add email in queue
+    await Queue.add(CancelOrderByProblemMail.key, {
+      problem: deliveryProblem.description,
+      deliverer: deliveryProblem.delivery.deliverer,
+      recipient: deliveryProblem.delivery.recipient,
+      order,
+    });
+
+    return res.json(order);
   }
 }
 
