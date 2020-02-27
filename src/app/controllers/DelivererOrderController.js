@@ -13,11 +13,16 @@ import Order from '../models/Order';
 
 class DelivererOrderController {
   async index(req, res) {
+    const { page = 1 } = req.query;
+
     // defining operation based on the query parameter 'end'
     const operation = req.query.end ? 'not' : 'is';
 
     // id query param 'end' is set, end_date must be valid
     const deliverer_orders = await Order.findAll({
+      limit: 20,
+      offset: (page - 1) * 20,
+      order: [['id', 'desc']],
       where: [
         {
           deliverer_id: req.params.id,

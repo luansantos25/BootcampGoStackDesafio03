@@ -3,7 +3,11 @@ import Deliverer from '../models/Deliverer';
 
 class DelivererController {
   async index(req, res) {
+    const { page = 1 } = req.query;
+
     const deliverer = await Deliverer.findAll({
+      limit: 20,
+      offset: (page - 1) * 20,
       where: { removed_at: null },
     });
 
