@@ -6,6 +6,7 @@ class Deliverer extends Model {
       {
         name: Sequelize.STRING,
         email: Sequelize.STRING,
+        removed_at: Sequelize.DATE,
       },
       {
         sequelize,

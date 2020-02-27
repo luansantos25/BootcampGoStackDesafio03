@@ -24,7 +24,12 @@ class OrderController {
       return res.status(400).json({ error: 'Validation error' });
     }
 
-    const deliverer = await Deliverer.findByPk(req.body.deliverer_id);
+    const deliverer = await Deliverer.findOne({
+      where: {
+        id: req.body.deliverer_id,
+        removed_at: null,
+      },
+    });
 
     // checking if deliverer exists
     if (!deliverer) {
@@ -67,6 +72,18 @@ class OrderController {
 
     if (!order) {
       return res.status(400).json({ error: 'Order not found' });
+    }
+
+    const deliverer = await Deliverer.findOne({
+      where: {
+        id: req.body.deliverer_id,
+        removed_at: null,
+      },
+    });
+
+    // checking if deliverer exists
+    if (!deliverer) {
+      return res.status(400).json({ error: 'Deliverer not found' });
     }
 
     const {
