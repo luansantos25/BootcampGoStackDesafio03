@@ -7,7 +7,13 @@ import CreateOrderMail from '../jobs/CreateOrderMail';
 
 class OrderController {
   async index(req, res) {
-    const orders = await Order.findAll();
+    const { page = 1 } = req.query;
+
+    const orders = await Order.findAll({
+      limit: 20,
+      offset: (page - 1) * 20,
+      order: [['id', 'desc']],
+    });
     return res.json(orders);
   }
 

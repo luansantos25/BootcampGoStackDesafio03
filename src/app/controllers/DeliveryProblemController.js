@@ -8,8 +8,13 @@ import CancelOrderByProblemMail from '../jobs/CancelOrderByProblemMail';
 
 class DeliveryProblemController {
   async index(req, res) {
+    const { page = 1 } = req.query;
+
     const deliveryProblems = await DeliveryProblem.findAll({
       attributes: ['id', 'description'],
+      limit: 20,
+      offset: (page - 1) * 20,
+      order: [['id', 'desc']],
       include: [
         {
           model: Order,
@@ -30,8 +35,13 @@ class DeliveryProblemController {
   }
 
   async show(req, res) {
+    const { page = 1 } = req.query;
+
     const deliveryProblems = await DeliveryProblem.findAll({
       attributes: ['id', 'description'],
+      limit: 20,
+      offset: (page - 1) * 20,
+      order: [['id', 'desc']],
       include: [
         {
           model: Order,
