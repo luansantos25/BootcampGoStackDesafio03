@@ -3,7 +3,9 @@ import Deliverer from '../models/Deliverer';
 
 class DelivererController {
   async index(req, res) {
-    const deliverer = await Deliverer.findAll();
+    const deliverer = await Deliverer.findAll({
+      where: { removed_at: null },
+    });
 
     res.json(deliverer);
   }
@@ -47,10 +49,12 @@ class DelivererController {
       return res.status(400).json({ error: 'Validation error' });
     }
 
-    const deliverer = await Deliverer.findByPk(req.params.id);
+    const deliverer = await Deliverer.findOne({
+      where: [{ id: req.params.id }, { removed_at: null }],
+    });
 
     if (!deliverer) {
-      return res.status(400).json({ error: 'Courier not found' });
+      return res.status(400).json({ error: 'Deliverer not found' });
     }
 
     const { email } = req.body;
@@ -78,10 +82,11 @@ class DelivererController {
     const deliverer = await Deliverer.findByPk(req.params.id);
 
     if (!deliverer) {
-      return res.status(400).json({ error: 'Courier not found' });
+      return res.status(400).json({ error: 'Deliverer not found' });
     }
 
-    await deliverer.destroy();
+    deliverer.removed_at = new Date();
+    await deliverer.save();
 
     return res.json();
   }

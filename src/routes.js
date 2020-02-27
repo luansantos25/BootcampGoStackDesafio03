@@ -27,11 +27,8 @@ routes.put(
   DelivererOrderController.update
 );
 
-routes.get('/problems', DeliveryProblemController.index);
-routes.get('/delivery/:id/problems', DeliveryProblemController.show);
 routes.post('/delivery/:id/problems', DeliveryProblemController.store);
 routes.delete('/problem/:id', DeliveryProblemController.delete);
-routes.delete('/problem/:id/cancel-delivery', DeliveryProblemController.delete);
 
 routes.post('/signature', upload.single('file'), SignatureController.store);
 
@@ -51,6 +48,10 @@ routes.get('/orders', OrderController.index);
 routes.post('/orders', OrderController.store);
 routes.put('/orders/:id', OrderController.update);
 routes.delete('/orders/:id', OrderController.delete);
+
+routes.get('/problems', DeliveryProblemController.index);
+routes.get('/delivery/:id/problems', DeliveryProblemController.show);
+routes.delete('/problem/:id/cancel-delivery', DeliveryProblemController.delete);
 
 routes.post('/files', upload.single('file'), FileController.store);
 

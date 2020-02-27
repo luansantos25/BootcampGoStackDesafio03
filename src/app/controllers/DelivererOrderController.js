@@ -5,8 +5,6 @@ import {
   startOfDay,
   endOfDay,
   isWithinInterval,
-  getMinutes,
-  getHours,
   getDate,
   getMonth,
   getYear,
